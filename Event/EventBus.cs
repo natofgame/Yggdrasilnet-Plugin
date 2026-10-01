@@ -18,11 +18,11 @@ public sealed class EventBus : IEventBus {
     }
 
     private readonly Dictionary<Type, List<Subscription>> _subscriptions = new();
-    private readonly PluginContext _context;
+    private readonly Func<PluginContext> _contextProvider;
     private readonly Action<Exception> _onError;
 
-    public EventBus(PluginContext context, Action<Exception> onError) {
-        _context = context;
+    public EventBus(Func<PluginContext> contextProvider, Action<Exception> onError) {
+        _contextProvider = contextProvider;
         _onError = onError;
     }
 
@@ -64,7 +64,7 @@ public sealed class EventBus : IEventBus {
     }
 
     public void Post(PluginEvent evt) {
-        evt.Context = _context;
+        evt.Context = _contextProvider();
 
         if (!_subscriptions.TryGetValue(evt.GetType(), out var list) || list.Count == 0) {
             return;
